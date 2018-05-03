@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Queue;
@@ -52,7 +53,7 @@ namespace Important
                 var message = await queue.GetMessageAsync();
 
                 //If there are no messages then sleep for a bit and wait.
-                //ONe common pattern here is to do exponential sleep time
+                //One common pattern here is to do exponential sleep time
                 //up to a max. If overnight there is no work then you want
                 //to sleep as much as possible, for example.
                 if(message == null)
@@ -61,13 +62,29 @@ namespace Important
                     continue;
                 }
 
-                //We aren't actually doing anything with this data.
-                //WE will log that we recieved it and wait for a bit to simulate
-                //work. Can observe data with logs in k8s.
-                _logger.LogInformation("Processing data {data}", message.AsString);
-                await Task.Delay(1000);
-                await queue.DeleteMessageAsync(message);
-                _logger.LogInformation("Processing data complete.");
+                if(message.DequeueCount > 3)
+                {
+                    //TODO: here you would transfer the message to table/blob storage
+                    //for later recovery and analysis. Kind of a manual dead letter queue.
+                    //This would handle bad messages.
+                    _logger.LogCritical("Giving up on processing {messageId} : {messageContent}", message.Id, message.AsString);
+                    await queue.DeleteMessageAsync(message);
+                }
+
+                try
+                {
+                    //We aren't actually doing anything with this data.
+                    //We will log that we recieved it and wait for a bit to simulate
+                    //work. Can observe data with logs in k8s.
+                    _logger.LogInformation("Processing data {data}", message.AsString);
+                    await Task.Delay(1000);
+                    await queue.DeleteMessageAsync(message);
+                    _logger.LogInformation("Processing data complete.");
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, "unknown error processing message {messageId}", message.Id);
+                }
             }
         }
     }
