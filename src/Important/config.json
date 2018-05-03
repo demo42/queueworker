@@ -1,0 +1,4 @@
+﻿{
+  "QueueConnectionString": "UseDevelopmentStorage=true;",
+  "QueueName": "important"
+}
