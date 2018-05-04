@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
+using Polly;
 
 namespace Important
 {
@@ -16,7 +17,13 @@ namespace Important
                     config.AddJsonFile("config.json")
                           .AddEnvironmentVariables())
                 .ConfigureLogging(log => log.AddConsole())
-                .ConfigureServices(services => services.AddSingleton<IHostedService, QueueProcessorService>());
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton<IHostedService, QueueProcessorService>();
+                    services.AddHttpClient<ImportantBackend>()
+                            .AddTransientHttpErrorPolicy(pb => pb.RetryAsync(5))
+                            .AddTransientHttpErrorPolicy(pb => pb.CircuitBreaker(5, TimeSpan.FromSeconds(5)));
+                });
 
             var configPath = Environment.GetEnvironmentVariable("ConfigPath");
             if (!string.IsNullOrEmpty(configPath))

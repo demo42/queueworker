@@ -1,4 +1,5 @@
 ﻿{
-  "QueueConnectionString": "UseDevelopmentStorage=true;",
-  "QueueName": "important"
+  "StorageConnectionString": "",
+  "QueueName": "important",
+  "LoopDelay": 10000
 }

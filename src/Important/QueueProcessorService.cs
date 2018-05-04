@@ -6,39 +6,26 @@ using Microsoft.Azure.Storage.Queue;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Polly.CircuitBreaker;
 
 namespace Important
 {
-    public class QueueProcessorService : IHostedService
+    public class QueueProcessorService : BackgroundService
     {
-        private Task _worker;
-        private readonly CancellationTokenSource _tokenSource;
         private readonly IConfiguration _config;
         private readonly ILogger<QueueProcessorService> _logger;
+        private readonly ImportantBackend _backend;
 
-        public QueueProcessorService(IConfiguration config, ILogger<QueueProcessorService> logger)
+        public QueueProcessorService(IConfiguration config,
+                                     ILogger<QueueProcessorService> logger,
+                                     ImportantBackend backend)
         {
             _config = config;
             _logger = logger;
-            _tokenSource = new CancellationTokenSource();
+            _backend = backend;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            _worker = DoWork(_tokenSource.Token);
-            return Task.CompletedTask;
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _tokenSource.Cancel();
-            if (await Task.WhenAny(_worker, Task.Delay(20000)) != _worker)
-            {
-                //Didn't stop gracefully in timeout. We should do something about that.
-            }
-        }
-
-        public async Task DoWork(CancellationToken cancellationToken)
+        protected async override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var storageAccount = CloudStorageAccount.Parse(_config["StorageConnectionString"]);
 
@@ -48,7 +35,10 @@ namespace Important
             // Retrieve a reference to a container.
             CloudQueue queue = queueClient.GetQueueReference(_config["QueueName"]);
 
-            while (!cancellationToken.IsCancellationRequested)
+            var loopDelay = 10000;
+            int.TryParse(_config["LoopDelay"], out loopDelay);
+
+            while (!stoppingToken.IsCancellationRequested)
             {
                 var message = await queue.GetMessageAsync();
 
@@ -56,13 +46,13 @@ namespace Important
                 //One common pattern here is to do exponential sleep time
                 //up to a max. If overnight there is no work then you want
                 //to sleep as much as possible, for example.
-                if(message == null)
+                if (message == null)
                 {
-                    await Task.Delay(10000);
+                    await Task.Delay(loopDelay);
                     continue;
                 }
 
-                if(message.DequeueCount > 3)
+                if (message.DequeueCount > 3)
                 {
                     //TODO: here you would transfer the message to table/blob storage
                     //for later recovery and analysis. Kind of a manual dead letter queue.
@@ -77,11 +67,11 @@ namespace Important
                     //We will log that we recieved it and wait for a bit to simulate
                     //work. Can observe data with logs in k8s.
                     _logger.LogInformation("Processing data {data}", message.AsString);
-                    await Task.Delay(1000);
+                    await _backend.SubmitData(message.AsString);
                     await queue.DeleteMessageAsync(message);
                     _logger.LogInformation("Processing data complete.");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError(ex, "unknown error processing message {messageId}", message.Id);
                 }
