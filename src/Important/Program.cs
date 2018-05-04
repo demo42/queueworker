@@ -17,6 +17,13 @@ namespace Important
                           .AddEnvironmentVariables())
                 .ConfigureLogging(log => log.AddConsole())
                 .ConfigureServices(services => services.AddSingleton<IHostedService, QueueProcessorService>());
+
+            var configPath = Environment.GetEnvironmentVariable("ConfigPath");
+            if (!string.IsNullOrEmpty(configPath))
+            {
+                builder.ConfigureAppConfiguration(config => config.AddKeyPerFile(configPath, true));
+            }
+
             await builder.Build().RunAsync();
         }
     }
