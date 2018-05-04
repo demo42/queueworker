@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.0-rc1-30678" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-rc1-30678" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-rc1-30678" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.KeyPerFile" Version="2.1.0-rc1-30678" />
     <PackageReference Include="Microsoft.Azure.Storage.Queue" Version="9.0.0-preview" />
   </ItemGroup>
 
