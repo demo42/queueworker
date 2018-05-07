@@ -22,5 +22,5 @@ RUN dotnet publish Important.csproj -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENV VERSION=0.0.16
+ENV VERSION=0.0.18
 ENTRYPOINT ["dotnet", "Important.dll"]
