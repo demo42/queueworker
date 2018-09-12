@@ -1,5 +1,8 @@
 # Demo 42 - Queue Worker
 
+See [deploy/readme.md](../deploy/readme.md) for an overview of demo42
+
+
 ## Building the image locally
 ```sh
 docker build -t demo42/queueworker:dev  -f ./src/queueworker/Dockerfile --build-arg demo42.azurecr.io .
@@ -17,7 +20,8 @@ az acr run -f acr-task.yaml  .
 
 ## Create an ACR Task
 
-Get the environment variables from [deploy/readme.md](../deploy/readme.md#Get-the-credentials-from-KeyVault)
+While ACR Tasks are limited to dogfood, get the environment variables from [deploy/readme.md](../deploy/readme.md#Get-the-credentials-from-KeyVault)
+
 ```sh
 ACR_NAME=demo42
 BRANCH=master
@@ -35,4 +39,8 @@ az acr task create \
   --set-secret REGISTRY_PWD=$ACR_PULL_PWD \
   --git-access-token ${GIT_TOKEN} \
   --registry $ACR_NAME 
+```
+Run the scheduled task
+```sh
+az acr task run -n demo42-web
 ```
