@@ -4,10 +4,10 @@ WORKDIR /app
 ARG REGISTRY_NAME
 ENV REGISTRY_NAME=${REGISTRY_NAME}
 
+
 FROM ${REGISTRY_NAME}baseimages/microsoft/dotnet/sdk:linux-2.1 AS build
 WORKDIR /src
 COPY src/Important/Important.csproj src/Important/
-COPY NuGet.Config .
 RUN dotnet restore src/Important/Important.csproj
 COPY . .
 WORKDIR /src/src/Important
