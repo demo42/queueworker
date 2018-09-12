@@ -18,3 +18,4 @@ steps:
       - PASSWORD={{.Values.PASSWORD}}
       - CLUSTER_RESOURCE_GROUP={{.Values.CLUSTER_RESOURCE_GROUP}}
       - CLUSTER_NAME={{.Values.CLUSTER_NAME}}
+
