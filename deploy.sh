@@ -27,4 +27,4 @@ helm fetch $RUN_REGISTRYNAME/importantThings
 echo -- helm upgrade demo42 ./helm/importantThings --
 helm upgrade demo42 ./helm/importantThings \
       --reuse-values \
-      --set queueworker.image={{.Run.Registry}}/demo42/queueworker:$RUN_ID
+      --set queueworker.image=$RUN_REGISTRY/demo42/queueworker:$RUN_ID
