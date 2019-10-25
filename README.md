@@ -2,18 +2,20 @@
 
 See [deploy/readme.md](../deploy/readme.md) for an overview of demo42
 
-
 ## Building the image locally
+
 ```sh
 docker build -t demo42/queueworker:dev  -f ./src/queueworker/Dockerfile --build-arg demo42.azurecr.io .
 ```
 
 ## Building the image with ACR Build
+
 ```sh
 az acr build -t demo42/queueworker:{{.Build.ID}} -f ./src/queueworker/Dockerfile --build-arg REGISTRY_NAME=demo42.azurecr.io .
 ```
 
 ## Build, Test, Deploy the image(s) with ACR Tasks
+
 ```sh
 az acr run -f acr-task.yaml  .
 ```
@@ -71,11 +73,11 @@ az acr task create \
             --vault-name ${AKV_NAME} \
             --name demo42-git-token \
             --query value -o tsv) \
-  --registry $ACR_NAME 
-
-
+  --registry $ACR_NAME
 ```
+
 Run the scheduled task
+
 ```sh
 az acr task run -n demo42-queueworker
 ```
