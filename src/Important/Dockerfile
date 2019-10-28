@@ -1,5 +1,5 @@
 ARG REGISTRY_NAME
-FROM ${REGISTRY_NAME}base-images/dotnet/core/runtime:2.1 AS base
+FROM ${REGISTRY_NAME}base-images/dotnet/core/runtime:2.1.10 AS base
 WORKDIR /app
 ARG REGISTRY_NAME
 ENV REGISTRY_NAME=${REGISTRY_NAME}
