@@ -22,12 +22,18 @@ namespace Important
         {
             _config = config;
             _logger = logger;
-            _backend = backend;
+            _backend = backend;            
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var storageAccount = CloudStorageAccount.Parse(_config["StorageConnectionString"]);
+            int loopDelay = _config.GetValue<int>("LoopDelay");
+            _logger.LogInformation("LoopDelay=" + loopDelay.ToString());
+
+            bool exitOnComplete=_config.GetValue<bool>("ExitOnComplete");
+            _logger.LogInformation("ExitOnComplete=" + exitOnComplete.ToString());
+            _backend.Delay = loopDelay;
 
             // Create the queue client.
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
@@ -35,8 +41,6 @@ namespace Important
             // Retrieve a reference to a container.
             CloudQueue queue = queueClient.GetQueueReference(_config["QueueName"]);
 
-            var loopDelay = 10000;
-            int.TryParse(_config["LoopDelay"], out loopDelay);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -49,7 +53,15 @@ namespace Important
                 if (message == null)
                 {
                     await Task.Delay(loopDelay);
-                    continue;
+                    if (exitOnComplete)
+                    {
+                        _logger.LogInformation("Message Processing Complete");
+                        Environment.Exit(0);
+                    } else
+                    {
+                        _logger.LogInformation("Waiting for new messages: {} milliseconds",loopDelay);
+                        continue;
+                    }
                 }
 
                 if (message.DequeueCount > 3)
@@ -64,18 +76,18 @@ namespace Important
                 try
                 {
                     //We aren't actually doing anything with this data.
-                    //We will log that we recieved it and wait for a bit to simulate
+                    //We will log that we received it and wait for a bit to simulate
                     //work. Can observe data with logs in k8s.
-                    _logger.LogInformation("Processing data {data}", message.AsString);
+                    _logger.LogInformation("Processing data: {data}", message.AsString);
                     await _backend.SubmitData(message.AsString);
                     await queue.DeleteMessageAsync(message);
-                    _logger.LogInformation("Processing data complete.");
+                    //_logger.LogInformation("Processing data complete.");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "unknown error processing message {messageId}", message.Id);
                 }
             }
-        }
+       }
     }
 }

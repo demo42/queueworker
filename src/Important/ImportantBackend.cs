@@ -6,6 +6,7 @@ namespace Important
     public class ImportantBackend
     {
         private HttpClient _client;
+        public int Delay { get; set; }
 
         public ImportantBackend(HttpClient client)
         {
@@ -14,7 +15,7 @@ namespace Important
 
         public async Task SubmitData(string data)
         {
-            await Task.Delay(1000);
+            await Task.Delay(this.Delay);
         }
     }
 }

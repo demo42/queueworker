@@ -1,11 +1,11 @@
 ARG REGISTRY_NAME
-FROM ${REGISTRY_NAME}baseimages/microsoft/aspnetcore/runtime:linux-2.1 AS base
+FROM ${REGISTRY_NAME}base-images/dotnet/core/runtime:2.1 AS base
 WORKDIR /app
 ARG REGISTRY_NAME
 ENV REGISTRY_NAME=${REGISTRY_NAME}
 
 
-FROM ${REGISTRY_NAME}baseimages/microsoft/dotnet/sdk:linux-2.1 AS build
+FROM ${REGISTRY_NAME}base-images/dotnet/core/sdk:2.1 AS build
 WORKDIR /src
 COPY src/Important/Important.csproj src/Important/
 RUN dotnet restore src/Important/Important.csproj

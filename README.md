@@ -2,10 +2,28 @@
 
 See [deploy/readme.md](../deploy/readme.md) for an overview of demo42
 
+## Importing the Base Images
+
+az acr import mcr.microsoft.com/dotnet/core/runtime:2.1
+
+az acr import \
+  -n demo42 \
+  --source mcr.microsoft.com/dotnet/core/runtime:2.1 \
+  --image base-images/dotnet/core/runtime:2.1
+
+az acr import \
+  -n demo42 \
+  --source mcr.microsoft.com/dotnet/core/sdk:2.1 \
+  --image base-images/dotnet/core/sdk:2.1
+
 ## Building the image locally
 
 ```sh
-docker build -t demo42/queueworker:dev  -f ./src/queueworker/Dockerfile --build-arg demo42.azurecr.io .
+docker build \
+  -t demo42/queueworker:1 \
+  -f ./src/Important/Dockerfile \
+  --build-arg REGISTRY_NAME=demo42.azurecr.io/ \
+  .
 ```
 
 ## Building the image with ACR Build
@@ -80,4 +98,15 @@ Run the scheduled task
 
 ```sh
 az acr task run -n demo42-queueworker
+```
+
+Run QueueWorker, Processing Messages
+
+```sh
+export STORAGECONNECTIONSTRING="[]"
+docker run -it \
+  -e StorageConnectionString=$STORAGECONNECTIONSTRING \
+  -e LoopDelay=1 \
+  -e ExitOnComplete=true \
+  demo42/queueworker:1
 ```
