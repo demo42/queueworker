@@ -1,4 +1,4 @@
-version: 1.0
+version: v1.0.0
 steps:
   - build: >
       -t {{.Run.Registry}}/demo42/queueworker:{{.Run.ID}} 
