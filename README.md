@@ -18,6 +18,11 @@ az acr import \
   -n ${ACR_NAME} \
   --source mcr.microsoft.com/dotnet/core/sdk:2.1 \
   --image base-images/dotnet/core/sdk:2.1
+
+az acr import \
+  -n ${ACR_NAME} \
+  --source mcr.microsoft.com/dotnet/core/sdk:2.2 \
+  --image base-images/dotnet/core/sdk:2.2
 ```
 
 ## Building the image locally
@@ -31,11 +36,20 @@ docker build \
 docker push demo42.azurecr.io/demo42/queueworker:1
 
 docker build \
-  -t demo42westus.azurecr-test.io/demo42/queueworker:1 \
+  -t demo42westus.azurecr.io/demo42/queueworker:1 \
   -f ./src/Important/Dockerfile \
   --build-arg ACR_NAME=demo42.azurecr.io/ \
   .
-docker push demo42westus.azurecr-test.io/demo42/queueworker:1
+docker push ${ACR_NAME}.azurecr.io/demo42/queueworker:1
+
+# Teleport Baseline Test - noop for the entrypoint
+docker build \
+  -t ${ACR_NAME}.azurecr.io/demo42/queueworker:no-entrypoint \
+  -f ./src/Important/Dockerfile-no-entrypoint \
+  --build-arg ACR_NAME=demo42.azurecr.io/ \
+  .
+docker push ${ACR_NAME}.azurecr.io/demo42/queueworker:no-entrypoint
+
 ```
 
 ## Building the image with ACR Tasks
@@ -121,10 +135,10 @@ docker run -it \
   -e StorageConnectionString=$STORAGECONNECTIONSTRING \
   -e LoopDelay=1 \
   -e ExitOnComplete=true \
-  demo42westus.azurecr-test.io/demo42/queueworker:1
+  demo42westus.azurecr.io/demo42/queueworker:1
 
 docker run -it \
-  demo42westus.azurecr-test.io/demo42/queueworker:1
+  demo42westus.azurecr.io/demo42/queueworker:1
 az acr run -r demo42westus --cmd "{{.Run.Registry}}/demo42/queueworker:1" /dev/null
 az acr run -r demo42westus --cmd "{{.Run.Registry}}/demo42/queueworker:1" /dev/null
 ```
@@ -136,5 +150,3 @@ az acr run -r demo42westus \
 
 az acr run -r demo42westus --cmd "{{.Run.Registry}}/demo42/queueworker:1" /dev/null
 
-
-demo42.azurecr.io/demo42/queueworker:1
