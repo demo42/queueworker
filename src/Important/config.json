@@ -1,5 +1,5 @@
 ﻿{
-  "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=demo42devscus;AccountKey=zouc6wxHsfoLzbAUGTqAtNKrHr64Ls44LAtLcCce8N46v8AZWnGtD6HRD0MdztPZMKr7f2s/f6YyV26xkxY8Iw==;EndpointSuffix=core.windows.net",
+  "StorageConnectionString": "",
   "QueueName": "important",
   "LoopDelay": 1,
   "ExitOnComplete": true
